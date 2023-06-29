@@ -17,6 +17,8 @@
     </form>
     <ul id="listofitems"></ul>
     <script>
+        let isEditing = false;
+        let editEmail = '';
         function saveToLocalStorage(event) {
             event.preventDefault();
             const name = event.target.username.value;
@@ -27,19 +29,65 @@
                 email: email,
                 phonenumber: phonenumber
             };
+            if (isEditing) {
+                updateUserData(email, userDetails);
+                isEditing = false;
+                editEmail = '';
+            } else {
+                addUserData(userDetails);
+            }
+            event.target.reset();
+        }
+        function addUserData(userDetails) {
             const storedUsers = JSON.parse(localStorage.getItem('users')) || [];
             storedUsers.push(userDetails);
             localStorage.setItem('users', JSON.stringify(storedUsers));
-            localStorage.setItem(email, JSON.stringify(userDetails));
+            localStorage.setItem(userDetails.email, JSON.stringify(userDetails));
             showUserOnScreen(userDetails);
-            event.target.reset();
+        }
+        function updateUserData(email, userDetails) {
+            const storedUsers = JSON.parse(localStorage.getItem('users')) || [];
+            const updatedUsers = storedUsers.map(user => {
+                if (user.email === email) {
+                    return userDetails;
+                }
+                return user;
+            });
+            localStorage.setItem('users', JSON.stringify(updatedUsers));
+            localStorage.setItem(userDetails.email, JSON.stringify(userDetails));
+            updateUserOnUI(email, userDetails);
         }
         function showUserOnScreen(user) {
             const parentElement = document.getElementById('listofitems');
-            const childElement = document.createElement('li');
-            childElement.textContent = user.name + ' - ' + user.email + ' - ' + user.phonenumber;
-            parentElement.appendChild(childElement);
+            const listItem = document.createElement('li');
+            listItem.setAttribute('data-email', user.email);
+            listItem.textContent = user.name + ' - ' + user.email + ' - ' + user.phonenumber;
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Delete';
+            deleteButton.addEventListener('click', function() {
+                deleteUser(user.email);
+            });
+            listItem.appendChild(deleteButton);
+            parentElement.appendChild(listItem);
         }
-     </script>
-  </body>
+        function deleteUser(email) {
+            const storedUsers = JSON.parse(localStorage.getItem('users')) || [];
+            const updatedUsers = storedUsers.filter(user => user.email !== email);
+            localStorage.setItem('users', JSON.stringify(updatedUsers));
+            localStorage.removeItem(email);
+            removeUserFromUI(email);
+        }
+        function removeUserFromUI(email) {
+            const listItem = document.querySelector(`li[data-email="${email}"]`);
+            listItem.remove();
+        }
+        // Load existing users from local storage and display them on the UI
+        window.addEventListener('DOMContentLoaded', function() {
+            const storedUsers = JSON.parse(localStorage.getItem('users')) || [];
+            storedUsers.forEach(function(user) {
+                showUserOnScreen(user);
+            });
+        });
+    </script>
+</body>
 </html>
