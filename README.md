@@ -29,7 +29,7 @@
                 email: email,
                 phonenumber: phonenumber
             };
-            if (isEditing) {
+             if (isEditing) {
                 updateUserData(email, userDetails);
                 isEditing = false;
                 editEmail = '';
@@ -67,7 +67,13 @@
             deleteButton.addEventListener('click', function() {
                 deleteUser(user.email);
             });
+            const editButton = document.createElement('button');
+            editButton.textContent = 'Edit';
+            editButton.addEventListener('click', function() {
+                editUser(user.email);
+            });
             listItem.appendChild(deleteButton);
+            listItem.appendChild(editButton);
             parentElement.appendChild(listItem);
         }
         function deleteUser(email) {
@@ -80,6 +86,17 @@
         function removeUserFromUI(email) {
             const listItem = document.querySelector(`li[data-email="${email}"]`);
             listItem.remove();
+        }
+        function editUser(email) {
+            isEditing = true;
+            editEmail = email;
+            const storedUser = JSON.parse(localStorage.getItem(email));
+            if (storedUser) {
+                const form = document.querySelector('form');
+                form.username.value = storedUser.name;
+                form.emailId.value = storedUser.email;
+                form.phonenumber.value = storedUser.phonenumber;
+            }
         }
         // Load existing users from local storage and display them on the UI
         window.addEventListener('DOMContentLoaded', function() {
